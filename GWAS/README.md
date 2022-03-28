@@ -14,7 +14,7 @@ Run using
 sh make_rscripts.sh
 ```
 
-The R scripts were then submitted to the kronos High Performance Computing job scheduler and run in parallel, e.g.
+The R scripts were then submitted to the UCL kronos High Performance Computing job scheduler and run in parallel, e.g.
 ```
 qsub -pe make 2 -cwd GWASscript_0.r
 qsub -pe make 2 -cwd GWASscript_1.r
