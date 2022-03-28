@@ -14,6 +14,12 @@ Run using
 sh make_rscripts.sh
 ```
 
-The R scripts were then submitted to the kronos High Performance Computing job scheduler and run in parallel.
+The R scripts were then submitted to the kronos High Performance Computing job scheduler and run in parallel, e.g.
+```
+qsub -pe make 2 -cwd GWASscript_0.r
+qsub -pe make 2 -cwd GWASscript_1.r
+qsub -pe make 2 -cwd GWASscript_2.r
+```
+etc.
 
-2. interpret_results_script.sh: 
+2. [interpret_results_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/25a84193491803ba0a422de1d208d867056a5d0c/GWAS/interpret_results_script.sh): This script will combine GWAS results from all the subsets of the genome, calculate genomic inflation/lambda, format for FUMA, and format for METAL. 
