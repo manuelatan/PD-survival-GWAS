@@ -27,6 +27,4 @@ qsub -pe make 2 -cwd GWASscript_2.r
 * For meta-analysis of cognitive impairment and HY3, this included PPMI (in hg38) so merged by rsID
 
 
-3. [metaanalysis_mortality_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/8ee01580ea695e8f1b0f4c44f364c008535e48da/GWAS/metaanalysis_mortality_script.sh): Run meta-analysis in METAL
-
-4.
+3. [metaanalysis_mortality_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/8ee01580ea695e8f1b0f4c44f364c008535e48da/GWAS/metaanalysis_mortality_script.sh): Run meta-analysis in METAL.
