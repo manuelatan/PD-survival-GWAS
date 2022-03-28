@@ -20,10 +20,13 @@ qsub -pe make 2 -cwd GWASscript_0.r
 qsub -pe make 2 -cwd GWASscript_1.r
 qsub -pe make 2 -cwd GWASscript_2.r
 ```
-etc.
 
 2. [interpret_results_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/25a84193491803ba0a422de1d208d867056a5d0c/GWAS/interpret_results_script.sh): This script will combine GWAS results from all the subsets of the genome, calculate genomic inflation/lambda, format for FUMA, and format for METAL. 
 
 * For meta-analysis of mortality, I excluded PPMI so merged all other cohorts by chr:bp in hg19
 * For meta-analysis of cognitive impairment and HY3, this included PPMI (in hg38) so merged by rsID
 
+
+3. [metaanalysis_mortality_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/8ee01580ea695e8f1b0f4c44f364c008535e48da/GWAS/metaanalysis_mortality_script.sh): Run meta-analysis in METAL
+
+4.
