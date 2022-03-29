@@ -14,3 +14,10 @@ Finally, we looked at other candidate variants that have been reported by other 
 * APOE e2
 * MAPT H1 haplotype [(Williams-Gray et al., 2013)](https://pubmed.ncbi.nlm.nih.gov/23781007/)
 * rs2242367 adjacent to LRRK2 [(Jabbari et al, 2021)](https://pubmed.ncbi.nlm.nih.gov/33341150/)
+
+
+# Code contents
+
+1. candidate_genes_script.R: This script looks at the results from the PD progression GWASs for the 90 PD risk loci (except for 2 which were not present due to minor allele filtering), and the other candidate variants. Creates heatmap and results tables.
+
+2. GRS_script.R: This script analyses the PD GRS vs mortality, Hoehn and Yahr stage 3+, and cognitive impairment in each cohort. Then I perform meta-analysis to combine results across cohorts.
