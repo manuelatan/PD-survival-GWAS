@@ -9,3 +9,7 @@ In the subset of cases who had died and had cause of death available, we classif
 In all these cases, we looked at the interaction between death cause and each of the top SNPs. We also conducted stratified analyses, where we separately analysed patients with PD-related cause of death, and patients with non-PD cause of death.
 
 # Code contents
+
+1. extract_mortality_snps_script.sh: In plink, this script extracts the top 10 loci from the PD mortality GWAS from the datasets of interest and recodes them into .raw format which is then analysed in R.
+
+2. cause_of_death_script.R: This script analyses the interaction between cause of death and each of the top mortality SNPs. It also conducts stratified analyses and plots Kaplan-Meier survival curves.
