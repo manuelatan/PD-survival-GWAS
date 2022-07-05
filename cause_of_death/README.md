@@ -10,6 +10,6 @@ In all these cases, we looked at the interaction between death cause and each of
 
 # Code contents
 
-1. [extract_mortality_snps_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/6d8ed56e9132a6ae864aaa4924f4bd10384c3708/cause_of_death/extract_mortality_snps_script.sh): In plink, this script extracts the top 10 loci from the PD mortality GWAS from the datasets of interest and recodes them into .raw format which is then analysed in R.
+1. [extract_mortality_snps_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/cause_of_death/extract_mortality_snps_script.sh): In plink, this script extracts the top 10 loci from the PD mortality GWAS from the datasets of interest and recodes them into .raw format which is then analysed in R.
 
-2. [cause_of_death_script.R](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/6d8ed56e9132a6ae864aaa4924f4bd10384c3708/cause_of_death/cause_of_death_script.R): This script analyses the interaction between cause of death and each of the top mortality SNPs. It also conducts stratified analyses and plots Kaplan-Meier survival curves.
+2. [cause_of_death_script.R](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/cause_of_death/cause_of_death_script.R): This script analyses the interaction between cause of death and each of the top mortality SNPs. It also conducts stratified analyses and plots Kaplan-Meier survival curves.
