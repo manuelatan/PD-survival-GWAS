@@ -1,17 +1,19 @@
 ######META-ANALYSIS SCRIPT######
 #Created: 16/03/2020
-#Last updated: 07/09/2021
+#Last updated: 13/05/2022
 #Created by: Manuela Tan
-#wd /data/kronos/kronos/mtan/survival_GWAS/metaanalysis_mortality/covars_aao_gender
+#WD /data/kronos/kronos/mtan/survival_GWAS/metaanalysis_mortality/covars_aao_gender
 #Meta-analysing UKB incident vs. prevalent separately
 
+
 #Excluding PPMI as not enough people met the outcome
-#Excluding Cambridge as genomic inflation factor is too high
+#Including CamPaIGN, separately from Cambridge PD research clinic 
+#Excluding Cambridge PD research clinic as genomic inflation factor > 1.2
 
 #Using chr:bp in hg19 (not rsIDs)
 #After excluding related individuals from merged dataset
 
-#COHORTS INCLUDED: PROBAND, Oxford, QSBB, UKB incident, UKB prevalent, Calypso, DIGPD, Aasly, Oslo
+#COHORTS INCLUDED: PROBAND, Oxford, QSBB, UKB incident, UKB prevalent, Calypso, CamPaIGN, DIGPD, Aasly, Oslo
 
 #Genomic control ON
 
@@ -97,8 +99,18 @@ PVALUE Pvalue
 WEIGHT N 
 PROCESS /data/kronos/kronos/mtan/survival_GWAS/Calypso/mortality/covars_aao_gender/Calypso_survival_mortality_METAL_hg19.tab
 
-
 # === DESCRIBE AND PROCESS THE SEVENTH INPUT FILE ===
+MARKER SNP
+ALLELE effect_allele noneffect_allele
+FREQ   MAF
+EFFECT beta
+STDERR se
+PVALUE Pvalue
+WEIGHT N 
+PROCESS /data/kronos/kronos/mtan/survival_GWAS/CamPaIGN/mortality/covars_aao_gender/CamPaIGN_survival_mortality_METAL_hg19.tab
+
+
+# === DESCRIBE AND PROCESS THE EIGTH INPUT FILE ===
 MARKER SNP
 ALLELE effect_allele noneffect_allele
 FREQ   MAF
@@ -109,7 +121,7 @@ WEIGHT N
 PROCESS /data/kronos/kronos/mtan/survival_GWAS/DIGPD/mortality/covars_aao_gender/DIGPD_survival_mortality_METAL_hg19.tab
 
 
-# === DESCRIBE AND PROCESS THE EIGHTH INPUT FILE ===
+# === DESCRIBE AND PROCESS THE NINTH INPUT FILE ===
 MARKER SNP
 ALLELE effect_allele noneffect_allele
 FREQ   MAF
@@ -120,7 +132,7 @@ WEIGHT N
 PROCESS /data/kronos/kronos/mtan/survival_GWAS/Aasly/mortality/covars_aao_gender/Aasly_survival_mortality_METAL_hg19.tab
 
 
-# === DESCRIBE AND PROCESS THE NINTH INPUT FILE ===
+# === DESCRIBE AND PROCESS THE TENTH INPUT FILE ===
 MARKER SNP
 ALLELE effect_allele noneffect_allele
 FREQ   MAF
@@ -131,7 +143,7 @@ WEIGHT N
 PROCESS /data/kronos/kronos/mtan/survival_GWAS/Oslo/mortality/covars_aao_gender/Oslo_survival_mortality_METAL_hg19.tab
 
 
-OUTFILE SURVIVAL_MORTALITY_META_20210907_hg19 .tbl
+OUTFILE SURVIVAL_MORTALITY_META_20220513_hg19 .tbl
 ANALYZE HETEROGENEITY
 
 QUIT
