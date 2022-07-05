@@ -39,13 +39,14 @@ write.table(export_GRS_rsid, "./PD_GRS/Nalls_score_rsid.txt",
 
 #---Read in results from survival GWAS meta-analyses---####
 
-mortality <- fread("../metaanalysis_mortality/covars_aao_gender/SURVIVAL_MORTALITY_META_20210907_hg191.tbl")
+mortality <- fread("../metaanalysis_mortality/covars_aao_gender/SURVIVAL_MORTALITY_META_20220513_hg191.tbl")
 
 mortality_filtered <- mortality %>% 
   filter(TotalSampleSize >= 1000) %>% 
   select(MarkerName, Allele1, Allele2, Freq1, Effect, StdErr, `P-value`, ) %>% 
   separate(MarkerName, into = c("CHR", "BP"), convert = TRUE) %>% 
   rename(mortality_beta = Effect,
+         mortality_se = StdErr,
          mortality_pval = `P-value`)
 
 
@@ -56,6 +57,7 @@ HY3_filtered <- HY3 %>%
   select(MarkerName, Allele1, Allele2, Freq1, Effect, StdErr, `P-value`) %>%
   rename(SNP = MarkerName,
          HY3_beta = Effect,
+         HY3_se = StdErr,
          HY3_pval = `P-value`)
 
 dementia <- fread("../metaanalysis_dementia/covars_aao_gender/SURVIVAL_DEMENTIA_META1.tbl")
@@ -65,6 +67,7 @@ dementia_filtered <- dementia %>%
   select(MarkerName, Allele1, Allele2, Freq1, Effect, StdErr, `P-value`) %>% 
   rename(SNP = MarkerName,
          dementia_beta = Effect,
+         dementia_se = StdErr,
          dementia_pval = `P-value`)
 
 #---Merge PD GWAS SNPs with survival GWAS SNPs---####
@@ -166,7 +169,7 @@ merged_filtered_long %>%
 colours <- c('#6a51a3', '#9e9ac8', '#cbc9e2', '#f2f0f7')
 
 #Plot heatmap
-ggplot(data = merged_filtered_long, mapping = aes(x = phenotype, y = SNP, fill = significance)) +
+heatmap <- ggplot(data = merged_filtered_long, mapping = aes(x = phenotype, y = SNP, fill = significance)) +
   geom_tile(colour = "white") +
   scale_fill_manual(values = colours) +
   theme_bw() +
@@ -177,8 +180,8 @@ ggplot(data = merged_filtered_long, mapping = aes(x = phenotype, y = SNP, fill =
                    labels=c("Pvalue_mortality" = "mortality", 
                             "Pvalue_HY3" = "HY3", 
                             "Pvalue_dementia" = "dementia")) +
-  coord_flip() + #rotate plot so that SNPs are on the x-axis and GWAS phenotype is on the y-object
-  ggsave("./PD_SNPs/heatmap_PD_SNPs.png", width = 7.5, height = 2.5)
+  coord_flip() #rotate plot so that SNPs are on the x-axis and GWAS phenotype is on the y-object
+ggsave("./PD_SNPs/heatmap_PD_SNPs.png", width = 7.5, height = 2.5)
 
 
 
@@ -259,11 +262,17 @@ candidate_vars_export <- candidate_vars_merged %>%
          freq = ifelse(Freq1.x > 0.5, 1-Freq1.x, Freq1.x),
          beta_mortality = ifelse(Freq1.x > 0.5, -mortality_beta, mortality_beta),
          beta_HY3 = ifelse(Freq1.x > 0.5, -HY3_beta, HY3_beta),
-         beta_dementia = ifelse(Freq1.x > 0.5, -dementia_beta, dementia_beta)) %>% 
+         beta_dementia = ifelse(Freq1.x > 0.5, -dementia_beta, dementia_beta),
+         mortality_CI_95_lower = sprintf("%.2f", round(exp(beta_mortality - 1.96*mortality_se),2)),
+         mortality_CI_95_upper = sprintf("%.2f", round(exp(beta_mortality + 1.96*mortality_se),2)),
+         HY3_CI_95_lower = sprintf("%.2f", round(exp(beta_HY3 - 1.96*HY3_se),2)),
+         HY3_CI_95_upper = sprintf("%.2f", round(exp(beta_HY3 + 1.96*HY3_se),2)),
+         dementia_CI_95_lower = sprintf("%.2f", round(exp(beta_dementia - 1.96*dementia_se),2)),
+         dementia_CI_95_upper = sprintf("%.2f", round(exp(beta_dementia + 1.96*dementia_se),2))) %>% 
   select(rsid, CHR, BP, effect_allele, other_allele, freq, 
-         beta_mortality, mortality_pval, 
-         beta_HY3, HY3_pval,
-         beta_dementia, dementia_pval)
+         beta_mortality, mortality_CI_95_lower, mortality_CI_95_upper, mortality_pval, 
+         beta_HY3, HY3_CI_95_lower, HY3_CI_95_upper, HY3_pval,
+         beta_dementia, dementia_CI_95_lower, dementia_CI_95_upper, dementia_pval)
 
 write.table(candidate_vars_export, "./other_candidate_vars/candidate_vars_results.txt",
             quote = F, row.names = F, col.names = T, sep = "\t")
