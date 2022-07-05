@@ -2,7 +2,8 @@
 #Goal: created PD GRS in each cohort and analyse in relation to mortality, H&Y3, dementia
 #Created by: Manuela Tan
 #Created: 15/10/2021
-#Last updated: 15/10/2021
+#Last updated: 30/06/2022
+#Last updated: Separated Cambridge into CamPaIGN and Cambridgeclinic
 #WD: /data/kronos/kronos/mtan/survival_GWAS/candidate_genes/PD_GRS
 
 
@@ -13,10 +14,10 @@
 
 ### Make GRS ###
 	
-	#For all cohorts except PPMI and UKB
+	#For all cohorts except PPMI, Cambridgeclinic, and UKB
 
 	sh
-	for COHORT in Aasly Calypso Cambridge DIGPD Oslo Oxford PROBAND QSBB
+	for COHORT in Aasly Calypso CamPaIGN DIGPD Oslo Oxford PROBAND QSBB
 
 	do
 
