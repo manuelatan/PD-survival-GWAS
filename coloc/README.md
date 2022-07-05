@@ -5,7 +5,8 @@ This repository contains scripts used to perform a colocalisation analysis using
 
 * [PsychENCODE](https://pubmed.ncbi.nlm.nih.gov/30545857/). Downloaded from [http://resource.psychencode.org/](http://resource.psychencode.org/)
 
-Code has been adapted from Regina Reynolds' very nice scripts for coloc analysis in the RBD GWAS:
+
+This code has been adapted from Regina Reynolds' very nice scripts for coloc analysis in the RBD GWAS:
 * [https://rhreynolds.github.io/RBD-GWAS-analysis/](https://rhreynolds.github.io/RBD-GWAS-analysis/)
 * [https://github.com/RHReynolds/RBD-GWAS-analysis](https://github.com/RHReynolds/RBD-GWAS-analysis)
 
