@@ -27,6 +27,6 @@ qsub -pe make 2 -cwd GWASscript_2.r
 * For meta-analysis of cognitive impairment and HY3, this included PPMI (in hg38) so merged by rsID
 
 
-3. [metaanalysis_mortality_script.sh](https://https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/GWAS/metaanalysis_mortality_script.sh): Run meta-analysis in METAL. This is for the mortality GWAS, the other GWASs follow the same format just different cohorts are included.
+3. [metaanalysis_mortality_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/GWAS/metaanalysis_mortality_script.sh): Run meta-analysis in METAL. This is for the mortality GWAS, the other GWASs follow the same format just different cohorts are included.
 
 4. [postprocessing_metaanalysis_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/GWAS/postprocessing_metaanalysis_script.sh): This script will tidy meta-analysis results, filter meta-analysis results (e.g. for heterogeneity criteria), calculate genomic inflation/lambda, format for FUMA, and format for LocusZoom plots.
