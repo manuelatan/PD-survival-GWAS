@@ -7,9 +7,9 @@ library(dplyr)
 library(ggplot2)
 
 #Single power calculation - using stats for APOE SNP
-#beta for APOE SNP = 0.2909
+#beta for APOE SNP = 0.2945
 #lm is the landmark time used for powering the study - this is the median time to the outcome (not censoring)
-res_single <- sim.snp.expsurv.power(1.337631, n=5655, raf = 0.16, erate = 0.313,
+res_single <- sim.snp.expsurv.power(1.34245, n=5744, raf = 0.16, erate = 0.321,
                                     pilm = 0.5, lm = 10.6, B=0,
                                     model="additive",test="additive",alpha=5e-8)
 res_single
@@ -21,7 +21,7 @@ GHRs<-seq(1.05,1.5,by=0.05)
 rafs<-c(0.1, 0.2, 0.3,0.4)
 erates<-c(0.3, 0.5,0.7,0.9)
 
-res1<-survSNP.power.table(GHRs, n=5655, rafs, erates,
+res1<-survSNP.power.table(GHRs, n=5744, rafs, erates,
                           pilm=0.5, lm=10.6, B=0,
                           model="additive",test="additive",alpha=5e-8)
 
@@ -35,11 +35,12 @@ res1<-survSNP.power.table(GHRs, n=5655, rafs, erates,
 str(res1)
 
 #Plot
-ggplot(data = res1, mapping  = aes(x = GHR, y = pow0, group = as.factor(raf), color = as.factor(raf))) + 
+plot <- ggplot(data = res1, mapping  = aes(x = GHR, y = pow0, group = as.factor(raf), color = as.factor(raf))) + 
   geom_line() +
   facet_wrap(~erate) +
   labs(color = "Allele frequency") +
   labs(x= "Hazard Ratio",
        y= "power") +
-  theme_bw() +
-  ggsave("plots/power_survivalGWAS.png", width = 9, height = 7)
+  theme_bw()
+
+ggsave("plots/power_survivalGWAS.png", width = 9, height = 7)

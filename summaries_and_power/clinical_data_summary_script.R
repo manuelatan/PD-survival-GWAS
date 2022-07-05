@@ -9,8 +9,8 @@ library(data.table)
 #---Read in mortality clinical data from each cohort and merge---####
 
 #Make list of cohorts - all for mortality analysis. Excluding PPMI
-#Cambridge is included here even though it was exclued from meta-analysis - will remove later
-cohorts_all <- c("Aasly", "Calypso", "Cambridge", "DIGPD",
+#Cambridge PD research clinic is excluded from meta-analysis
+cohorts_all <- c("Aasly", "Calypso", "CamPaIGN", "DIGPD",
                  "Oslo", "Oxford", "PROBAND", "QSBB", "UKB")
 
 #Make empty data list
@@ -27,7 +27,7 @@ for (i in 1:length(cohorts_all)){
   
   #Filename which contains 2020 or 2021
   mortality_filename <- list.files(path = directory,
-                                   pattern = "2021-|2020-")
+                                   pattern = "2021-|2020-|2022-")
   
   #Read in mortality data
   data <- fread(paste("../", name, "/mortality/covars_aao_gender/",
@@ -55,8 +55,16 @@ for (i in 1:length(cohorts_all)){
       inner_join(genetic, by = c("FID", "IID"))
     
   } else {
+    
+    #Make filename for list of final individuals
+    
+    #If CamPaIGN cohort, the list of final individuals is in the Cambridge folder - merged with Cambridge PD Research Clinic
+    if (name == "CamPaIGN") {
+      individuals_filename <- ("../Cambridge/mortality/Cambridge_final_keep.txt")
+    } else {
     #Read in final list of individuals - if it exists
-    individuals_filename <- paste("../", name, "/mortality/", name, "_final_keep.txt", sep = "")
+      individuals_filename <- paste("../", name, "/mortality/", name, "_final_keep.txt", sep = "")
+    }
     
     #Merge to get final individuals in analysis
     if (file.exists(individuals_filename)) {
@@ -107,10 +115,15 @@ for (i in 1:length(cohorts_all)){
 #Merge data in datalist
 merged <- bind_rows(datalist)
 
-#Remove PPMI and Campaign as these were excluded from the final GWAS results
+#Summary by cohort
+merged %>% 
+  group_by(cohort) %>% 
+  summarise(count = n())
+#PPMI and Cambridge PD Research Clinic are already excluded as they did not meet criteria and not included in final GWAS 
+
+#Remove one individual from Oslo cohort which was overlapping with Aasly
 merged_mortality <- merged %>% 
-  filter(cohort != "Cambridge", cohort !="PPMI") %>% 
-  filter(IID != "PACCFCX") #Remove one individual from Oslo cohort which was overlapping with Aasly
+  filter(IID != "PACCFCX")
 
 merged_mortality %>% 
   group_by(cohort) %>% 
@@ -118,6 +131,10 @@ merged_mortality %>%
 
 #Remove rows missing any data
 merged_mortality_final <- na.omit(merged_mortality)
+
+merged_mortality_final %>% 
+  group_by(cohort) %>% 
+  summarise(count = n())
 
 #---Mortality summaries---####
 
@@ -128,7 +145,17 @@ merged_mortality_final %>%
             mean_timeToEvent = mean(timeToEvent_death),
             median_timeToEvent = median(timeToEvent_death))
 
+#Total number of individuals who died or survived, by cohort
+merged_mortality_final %>% 
+  group_by(cohort, event_death) %>% 
+  summarise(count = n()) 
 
+#Check what 5% of the total cohort N is
+#This is the cutoff for the number of people who meet the outcome for the cohort to be included
+merged_mortality_final %>% 
+  group_by(cohort) %>% 
+  summarise(count = n()) %>% 
+  mutate(cutoff_0.05 = 0.05*count)
 
 #---Read in H&Y3 clinical data from each cohort and merge---####
 
