@@ -30,3 +30,5 @@ qsub -pe make 2 -cwd GWASscript_2.r
 3. [metaanalysis_mortality_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/GWAS/metaanalysis_mortality_script.sh): Run meta-analysis in METAL. This is for the mortality GWAS, the other GWASs follow the same format just different cohorts are included.
 
 4. [postprocessing_metaanalysis_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/GWAS/postprocessing_metaanalysis_script.sh): This script will tidy meta-analysis results, filter meta-analysis results (e.g. for heterogeneity criteria), calculate genomic inflation/lambda, format for FUMA, and format for LocusZoom plots.
+
+5. [make_final_table.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/GWAS/make_final_table.sh): This script reads in the independent SNPs as annotated by FUMA and makes the final table for the paper, with the closest genes and key summary statistics.
