@@ -18,8 +18,8 @@ Finally, we looked at other candidate variants that have been reported by other 
 
 # Code contents
 
-1. [candidate_genes_script.R](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/800e8bacb2bf44163c2ed9b8608b2aed5a23d737/candidate_genes/candidate_genes_script.R): This script looks at the results from the PD progression GWASs for the 90 PD risk loci (except for 2 which were not present due to minor allele filtering), and the other candidate variants. Creates heatmap and results tables.
+1. [candidate_genes_script.R](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/candidate_genes/candidate_genes_script.R): This script looks at the results from the PD progression GWASs for the 90 PD risk loci (except for 2 which were not present due to minor allele filtering), and the other candidate variants. Creates heatmap and results tables.
 
-2. [GRS_script.R](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/800e8bacb2bf44163c2ed9b8608b2aed5a23d737/candidate_genes/GRS_script.R): This script analyses the PD GRS vs mortality, Hoehn and Yahr stage 3+, and cognitive impairment in each cohort. Then I perform meta-analysis to combine results across cohorts.
+2. [GRS_script.R](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/candidate_genes/GRS_script.R): This script analyses the PD GRS vs mortality, Hoehn and Yahr stage 3+, and cognitive impairment in each cohort. Then I perform meta-analysis to combine results across cohorts.
 
-3. [pd_grs_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/725ea4a1a777a60eb53f8957c877195ca053f72f/candidate_genes/pd_grs_script.sh): This script creates the PD GRS in plink
+3. [pd_grs_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/candidate_genes/pd_grs_script.sh): This script creates the PD GRS in plink
