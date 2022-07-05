@@ -19,7 +19,7 @@ mortality_tidy_w_varbeta <-
 
 mafdb <- MafDb.1Kgenomes.phase3.hs37d5
 
-GWAS_path <- "/data/kronos/kronos/mtan/survival_GWAS/metaanalysis_mortality/covars_aao_gender/SURVIVAL_MORTALITY_META_20210907_hg191.tbl"
+GWAS_path <- "/data/kronos/kronos/mtan/survival_GWAS/metaanalysis_mortality/covars_aao_gender/SURVIVAL_MORTALITY_META_20220513_hg191.tbl"
 eQTL_path <- "/data/kronos/kronos/mtan/survival_GWAS/coloc/eQTLGen/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt.gz"
 results_path <- "/data/kronos/kronos/mtan/survival_GWAS/coloc/results"
 
@@ -37,7 +37,7 @@ ensembl_gene_ids_overlapping_1Mb_window_hit <-
                                                   mart = 37)
 
 # PD sample size 
-df1_N <- 5655
+df1_N <- 5744
 
 # PD proportion cases
 df_1_propor_cases <- 1

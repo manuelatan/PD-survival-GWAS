@@ -31,7 +31,7 @@ library(here)
 #---Read in meta-analysis results---####
 
 #Read in mortality results
-mortality <- fread("../metaanalysis_mortality/covars_aao_gender/SURVIVAL_MORTALITY_META_20210907_hg191.tbl")
+mortality <- fread("../metaanalysis_mortality/covars_aao_gender/SURVIVAL_MORTALITY_META_20220513_hg191.tbl")
 
 #Filter for SNPs that pass QC
 mortality_qc <- mortality %>% 
@@ -44,25 +44,25 @@ mortality_qc <- mortality %>%
          Al2 = toupper(Allele2))
 
 #Tidy GWAS data and rename columns
-mortality_tidy <- mortality_qc %>% 
-  rename(SNP = MarkerName,
+mortality_tidy <- mortality_qc %>%
+  dplyr::rename(SNP = MarkerName,
          beta = Effect,
          se = StdErr,
          p.value = `P-value`,
          maf = Freq1) %>% 
-  mutate(GWAS = "PD_mortality") %>% 
-  select(GWAS, SNP, beta, se, p.value, Al1, Al2, maf)
+  dplyr::mutate(GWAS = "PD_mortality") %>% 
+  dplyr::select(GWAS, SNP, beta, se, p.value, Al1, Al2, maf)
 
 #---Format GWAS data for coloc---####
 
 #As some MAFs are > 0.5, need to switch alleles and inverse beta
 mortality_tidy_new <- mortality_tidy %>% 
-  mutate(beta_new = ifelse(maf > 0.5, -beta, beta),
+  dplyr::mutate(beta_new = ifelse(maf > 0.5, -beta, beta),
          Al1_new = ifelse(maf > 0.5, Al2, Al1),
          Al2_new = ifelse(maf > 0.5, Al1, Al2),
          maf_new = ifelse(maf > 0.5, 1 - maf, maf)) %>% 
-  select(GWAS, SNP, beta_new, se, p.value, Al1_new, Al2_new, maf_new) %>% 
-  rename(beta = beta_new,
+  dplyr::select(GWAS, SNP, beta_new, se, p.value, Al1_new, Al2_new, maf_new) %>% 
+  dplyr::rename(beta = beta_new,
          Al1 = Al1_new,
          Al2 = Al2_new,
          maf = maf_new)
