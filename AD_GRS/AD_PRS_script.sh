@@ -1,7 +1,8 @@
 ### AD PRS FOR PD PROGRESSION MORTALITY AND DEMENTIA ###
 #Created by: Manuela Tan
 #Created 19/10/2021
-#Last updated 19/10/2021
+#Last updated 30/06/2022
+#Last udpated: Separated Cambridge into Cambridgeclinic and CamPaIGN
 #WD: /data/kronos/kronos/mtan/survival_GWAS/AD_PRS
 #Goal is to create AD GRS and PRSs
 #Excluding APOE region
@@ -96,7 +97,7 @@
 
 ### In plink make AD GRS just using GWAS-significant loci ###
 
-	for COHORT in Aasly Calypso Cambridge DIGPD Oslo Oxford PROBAND QSBB UKB PPMI
+	for COHORT in Aasly Calypso CamPaIGN DIGPD Oslo Oxford PROBAND QSBB UKB PPMI
 	do
 		/data/kronos/kronos/mtan/software/plink_1-9/plink --bfile ../candidate_genes/PD_GRS/"$COHORT"_PD.snpqc.chrbp_ids.nodupli \
 		--score Wightman_score.txt 3 5 7 header \
@@ -105,7 +106,7 @@
 
 ### In plink make AD GRS just using GWAS-significant loci excluding APOE ###
 
-	for COHORT in Aasly Calypso Cambridge DIGPD Oslo Oxford PROBAND QSBB UKB PPMI
+	for COHORT in Aasly Calypso CamPaIGN DIGPD Oslo Oxford PROBAND QSBB UKB PPMI
 	do
 		/data/kronos/kronos/mtan/software/plink_1-9/plink --bfile ../candidate_genes/PD_GRS/"$COHORT"_PD.snpqc.chrbp_ids.nodupli \
 		--exclude range APOE_exclude.txt \
