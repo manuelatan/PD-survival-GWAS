@@ -52,7 +52,8 @@ table1_merged <- table1_merged %>%
 #---Run PLINK to make AD GRS---####
 #---Analyse AD GRS vs mortality in each cohort---####
 
-cohorts_list <- c("Aasly", "Calypso", "Cambridge", "DIGPD", "Oslo", "Oxford", "PROBAND", "QSBB", "PPMI", "UKB")
+#Excluding Cambridgeclinic and PPMI as these were excluded from the GWAS
+cohorts_list <- c("Aasly", "Calypso", "CamPaIGN", "DIGPD", "Oslo", "Oxford", "PROBAND", "QSBB", "UKB")
 
 #Make results dataframe
 coefficients<-as.data.frame(matrix(ncol= 9))
@@ -75,7 +76,7 @@ for (i in 1:length(cohorts_list)) {
   
   #Need to change the FID and IID in the PCs as these have been calculated in unimputed data
   
-  if (name == "Calypso" | name == "Cambridge" | name == "QSBB" | name == "PPMI" | name == "UKB") {
+  if (name == "Calypso" | name == "CamPaIGN" | name == "QSBB" | name == "UKB") {
     
     colnames(PCs) <- c("V1", "V2", paste("PC", 1:20, sep = ""))
     
@@ -103,7 +104,7 @@ for (i in 1:length(cohorts_list)) {
   #Read in clinical data for mortality
   #First get the filename of the mortality clinical data file
   mortality_filename <- list.files(path =  paste("../", name, "/mortality/covars_aao_gender/", sep = ""),
-                                   pattern = "2021-|2020-")
+                                   pattern = "2021-|2020-|2022-")
   
   #Read in mortality data
   mortality <- fread(paste("../", name, "/mortality/covars_aao_gender/", mortality_filename, sep = ""))
@@ -143,7 +144,7 @@ for (i in 1:length(cohorts_list)) {
       
       kmz <- cox.zph(model.cox, transform = "km")
       
-      k = j+9
+      k = j+8
       
       coefficients[k,1]<- paste("UKB", UKB_subcohorts[j], sep = "")
       coefficients[k,2]<- summary(model.cox)$coefficients[1,1]
@@ -193,6 +194,7 @@ for (i in 1:length(cohorts_list)) {
 #---Meta analyse GRS vs mortality---####
 
 #Random effects meta-analysis
+#Excluding PPMI and Cambridgeclinic
 meta_mortality <- metagen(TE = Coeff,
                           seTE = se,
                           studlab = cohort,
