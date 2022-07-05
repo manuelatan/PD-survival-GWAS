@@ -6,9 +6,17 @@
 library(ggplot2)
 library(survival)
 library(survminer)
-library(lme4)
 library(data.table)
 library(tidyverse)
+library(cmprsk)
+
+#---Load cmprsk function---####
+
+#Downloaded from http://www.stat.unipg.it/luca/R
+#From https://www.nature.com/articles/1705727
+#I edited the CumIncidence function to save the plots in the ./plots/ directory
+source("./cmprsk/CumIncidence_MT.r")
+
 
 #---Read in genotype data for top 10 SNPs from each cohort---####
 
@@ -20,21 +28,41 @@ UKB_geno <- fread("UKB.snpqc.mortality_snps.recodeA.raw")
 #Read in clinical data for UKB and QSBB - this has the cause of death data
 UKBclinical <- read.table("clinical/UKB_survival_all_2020-09-17.txt", header = T)
 
-#Select relevant columns and just keep UKB cases that have died, only incident and prevalent cases
+#PDdeath is coded as PDdeath == yes, or NA for non-PD
+UKBclinical %>% 
+  group_by(event_death, PDdeath) %>% 
+  summarise(count = n())
+
+#Select relevant columns and only incident and prevalent cases
 UKBclinical <- UKBclinical %>% 
-  filter(event_death == 1) %>% 
   filter(cohort == "UKB_incident" | cohort == "UKB_prevalent") %>% 
   select(FID, IID, cohort, event_death, timeToEvent_death, age_onset_imput, gender, PDdeath) %>% 
-  mutate(PDdeath = ifelse(is.na(PDdeath), "interrupted", "yes"))
+  mutate(PDdeath = ifelse(event_death == 0 & is.na(PDdeath), 0, #0 indicates censored, still alive
+                          ifelse(event_death == 1 & is.na(PDdeath), 2, #Competing cause of death (non-PD) coded as 2
+                                 ifelse(event_death == 1 & PDdeath == "yes", 1, NA)))) #Main cause of death (PD) coded as 1
 
+#Check coding
+UKBclinical %>% 
+  group_by(PDdeath) %>% 
+  summarise(count = n())
 
-
+#Read in QSBB data
 QSBBclinical <- read.table("clinical/QSBB_survival_all_2020-07-30.txt", header = T)
+
+QSBBclinical %>% 
+  group_by(PDdeath) %>% 
+  summarise(count = n())
 
 QSBBclinical <- QSBBclinical %>% 
   mutate(cohort == "QSBB") %>% 
-  mutate(gender = tolower(gender)) %>% 
+  mutate(gender = tolower(gender),
+         PDdeath = ifelse(PDdeath == "yes", 1,
+                          ifelse(PDdeath == "interrupted", 2, NA))) %>% 
   select(FID, IID, cohort, event_death, timeToEvent_death, age_onset_imput, gender, PDdeath)
+
+QSBBclinical %>% 
+  group_by(PDdeath) %>% 
+  summarise(count = n())
 
 #---Read in Principal Components---####
 
@@ -56,6 +84,7 @@ UKB_merged <- UKBclinical %>%
 
 #---Merge datasets---####
 
+#Match column names
 match <- names(UKB_merged) %in% names(QSBB_merged)
 UKB_merged_selected <- UKB_merged[, match]
 
@@ -71,22 +100,6 @@ merged %>%
   group_by(PDdeath) %>% 
   summarise(count = n())
 
-#Filter just for cases that have cause of death (i.e. remove the QSBB with NA cause of death)
-merged_deathcause <- merged %>% 
-  filter(!is.na(PDdeath))
-
-merged_deathcause %>% 
-  group_by(cohort, PDdeath) %>% 
-  summarise(count = n())
-
-merged_deathcause %>% 
-  group_by(PDdeath) %>% 
-  summarise(count = n())
-
-#Calculate mean and median time to event
-merged_deathcause %>% 
-  summarise(median = median(timeToEvent_death, na.rm = TRUE))
-
 #---Rename SNP column names with rsIDs---####
 
 #Read in SNP positions and rsIDs (from FUMA independent SNPs)
@@ -98,7 +111,7 @@ snps_sorted <- snps %>%
   arrange(chr, bp) %>% 
   mutate(snp = paste(chr, ":", bp, ":", other_allele, ":", effect_allele, "_", effect_allele, sep = ""))
 
-merged_colnames <- colnames(merged_deathcause)[13:19]
+merged_colnames <- colnames(merged)[13:19]
 
 #Keep only SNPs that are in the main dataframe
 rsids <- snps_sorted %>% 
@@ -106,141 +119,222 @@ rsids <- snps_sorted %>%
 
 rsids <- as.vector(rsids[['rsid']])
 
-colnames(merged_deathcause)[13:19] <- rsids
+colnames(merged)[13:19] <- rsids
 
-#---Make functions to plot Kaplan-Meier surves---####
+#---Remove cases missing time to event or PD death data---####
 
+merged %>% 
+  group_by(PDdeath) %>% 
+  summarise(count = n())
 
-### Function to plot Kaplan-Meier curve stratified by PD death cause ###
-# This will select/filter for only PD deaths OR interrupted deaths
-# PDdeath_val must be either "yes" (PD death) or "interrupted"
-# SNP value must match the column names in the main dataset
-# Will also return results from Cox model with covariates (age onset, sex, PC1-PC5)
-plot_KM_stratified <- function(df, SNP, PDdeath_val){
-  
-  #Filter by PDdeath group
-  filtered <- df %>% 
-    filter(PDdeath == PDdeath_val)
-  
-  #Fit mortality vs. SNP
-  #Note we are using the survminer::surv_fit() function rather than survfit()
-  #Otherwise ggsurvplot has scoping issues
-  fit <- surv_fit(Surv(time = filtered$timeToEvent_death,
-                      event = filtered$event_death) ~ filtered[[SNP]],
-                 data = filtered)
-  
-  if (PDdeath_val == "yes") {
-    filename <- paste("./plots/", SNP, "_PDdeath.png", sep = "")
-  } else {
-    filename <- paste("./plots/", SNP, "_interrupted.png", sep = "")
-  }
- 
-  #Make legend labels - this depends on whether there are homozygotes for the alt allele
-  if (length(unique(filtered[[SNP]])) == 3) {
-    legend.labs = c("0", "1", "2")
-  } else {
-    legend.labs = c("0", "1")
-  }
+#Remove cases missing time to event data
+#Otherwise the competing risk analysis cannot produce time point estimates and SEs
+merged_nomiss <- merged %>% 
+  filter(!is.na(timeToEvent_death), !is.na(PDdeath))
 
-  legend_title <- paste(SNP, " allele count", sep = "")
-  
-  #Plot Kaplan Meier curve for SNP vs. mortality in stratified data
-  ggsurvplot(fit, data = filtered, pval = FALSE,
-             legend.title = legend_title,
-             legend.labs = legend.labs) +
-    ggsave(filename, width = 6, height = 7)
-  
-  #Fit Cox Proportional Hazards model for mortality vs.SNP with covariates
-  cox <- coxph(Surv(time = filtered$timeToEvent_death, 
-                    event = filtered$event_death) ~ filtered[[SNP]]
-               + age_onset_imput + gender
-               + PC1 + PC2 + PC3 + PC4 + PC5, 
-               data = filtered)
-  
-  return(summary(cox))
-  
-}
+#---Summaries---####
+
+merged_nomiss %>% 
+  group_by(PDdeath) %>% 
+  summarise(count = n())
+
+merged_nomiss %>% 
+  group_by(PDdeath) %>% 
+  summarise(mean_time = mean(timeToEvent_death),
+            median_time = median(timeToEvent_death))
+
+#Check mean and median survival time in died vs. surviving cases (not separating PD death vs. non-PD death)
+merged_nomiss %>% 
+  mutate(died = ifelse(PDdeath == 1 | PDdeath == 2, 1,
+                       ifelse(PDdeath == 0, 0, NA))) %>% 
+  group_by(died) %>% 
+  summarise(mean_time = mean(timeToEvent_death),
+            median_time = median(timeToEvent_death))
 
 
-### Function to plot Kaplan-Meier curve faceted by PD death cause ###
-# This will include the whole dataset and save a single plot faceted by PD death group
-# The Kaplan-Meier curve will show SNP allele counts in a dominant model for simplicity
-# I.e. SNP 0 vs. SNP 1 / 2
-# PDdeath_val must be either "yes" (PD death) or "interrupted"
-# SNP value must match the column names in the main dataset
-# Will also return results from Cox model with interaction between SNP x death
-# Covariates (age onset, sex, PC1-PC5)
+#---Recode gender as numeric---####
 
-plot_KM_faceted <- function(input, SNP){
-  
-  #Recode rs429358 SNP in a dominant model
-  input <- input %>% 
-    mutate(SNP_dominant = ifelse(input[[SNP]] == 0, "0",
-                                 ifelse(input[[SNP]] == 1 | input[[SNP]] == 2, "1/2", NA)))
+#Recode gender as numeric - needed for crr function
+merged_nomiss <- merged_nomiss %>% 
+  mutate(SEX = ifelse(gender == "male", 1,
+                      ifelse(gender == "female", 2, NA)))
 
-  #Fit SNP vs. mortality
-  fit <- surv_fit(Surv(time = timeToEvent_death,
-                       event = event_death) ~ SNP_dominant,
-                  data = input)
-  
-  #Plot Kaplan Meier curve for SNP vs. mortality
-  ggsurvplot_facet(fit = fit, data = input, 
-                   pval = FALSE,
-                   facet.by = "PDdeath",
-                   panel.labs = list(PDdeath = c("interrupted death", "PD death")),
-                   short.panel.labs = TRUE,
-                   legend.title = paste(SNP, " allele count", sep = "")) +
-    ggsave(paste("./plots/", SNP, "_faceted.png", sep = ""))
-  
-  #Fit Cox Proportional Hazards model for mortality vs. SNP with covariates
-  cox <- coxph(Surv(time = timeToEvent_death,
-                    event = event_death) ~ input[[SNP]]*PDdeath
-                 + age_onset_imput + gender
-                 + PC1 + PC2 + PC3 + PC4 + PC5,
-                 data = input)
 
-  return(summary(cox))
-  
-}
+#---Cumulative incidence curves for APOE rs429358---####
 
-#---Plot Kaplan-Meier curves for APOE rs429358 SNP---####
 
-plot_KM_stratified(merged_deathcause, "rs429358", "yes")
-plot_KM_stratified(merged_deathcause, "rs429358", "interrupted")
+#Summary of SNP allele carriers
+merged_nomiss %>% 
+  group_by(rs429358) %>% 
+  summarise(count = n())
 
-plot_KM_faceted(input = merged_deathcause, "rs429358")
+#Code SNP in dominant model
+merged_nomiss <- merged_nomiss %>% 
+  mutate(rs429358_dominant = ifelse(rs429358 == 0, 0,
+                                    ifelse(rs429358 == 1 | rs429358 == 2, 1, NA)))
 
-#---Plot Kaplan-Meier curves for TBXAS1 rs4726467 SNP---####
+#Check if any missing APOE SNP data
+merged_nomiss %>% 
+  filter(is.na(rs429358_dominant)) %>% 
+  summarise(count = n())
 
-merged_deathcause %>% 
+
+#Make SNP into a factor
+rs429358_dominant_fact <- factor(merged_nomiss$rs429358_dominant, levels=c(0,1), labels= c("rs429358 non-carriers", "rs429358 carriers"))
+
+#Run analysis
+fit <- CumIncidence_MT(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, rs429358_dominant_fact, cencode = 0, xlab="Years from onset")
+
+#---Subdistribution hazard models for APOE rs429358---####
+
+#Make covariate matrix
+cov.mat <- cbind(merged_nomiss$rs429358_dominant, merged_nomiss$age_onset_imput, merged_nomiss$SEX,
+                 merged_nomiss$PC1, merged_nomiss$PC2, merged_nomiss$PC3, merged_nomiss$PC4, merged_nomiss$PC5)
+
+# Subdistribution hazard model for PD death (failcode = 1) 
+crr.1 <- crr(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, cov.mat, failcode = 1, cencode = 0)
+summary(crr.1)
+#The coefficients from the summary(crr) are in the order that we specified in the cov.mat
+
+# Subdistribution hazard model for nonPD death (failcode = 2)
+crr.2 <- crr(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, cov.mat, failcode = 2, cencode = 0)
+summary(crr.2)
+
+
+
+#---Cumulative incidence curves for TBXAS1 rs4726467---####
+
+#Summary of SNP allele carriers
+merged_nomiss %>% 
   group_by(rs4726467) %>% 
   summarise(count = n())
 
-plot_KM_stratified(merged_deathcause, "rs4726467", "yes")
-plot_KM_stratified(merged_deathcause, "rs4726467", "interrupted")
+#Code SNP in dominant model
+merged_nomiss <- merged_nomiss %>% 
+  mutate(rs4726467_dominant = ifelse(rs4726467 == 0, 0,
+                                     ifelse(rs4726467 == 1 | rs4726467 == 2, 1, NA)))
 
-plot_KM_faceted(merged_deathcause, "rs4726467")
+#Check if any missing SNP data
+merged_nomiss %>% 
+  filter(is.na(rs4726467_dominant)) %>% 
+  summarise(count = n())
 
 
-#---Plot Kaplan-Meier curves for TBXAS1 rs144889025 SNP---####
+#Make SNP into a factor
+rs4726467_dominant_fact <- factor(merged_nomiss$rs4726467_dominant, levels=c(0,1), labels= c("rs4726467 non-carriers", "rs4726467 carriers"))
 
-merged_deathcause %>% 
+#Run analysis
+fit <- CumIncidence_MT(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, rs4726467_dominant_fact, cencode = 0, xlab="Years from onset")
+
+#---Subdistribution hazard models for TBXAS1 SNP rs4726467---####
+
+#Make covariate matrix
+cov.mat <- cbind(merged_nomiss$rs4726467_dominant, merged_nomiss$age_onset_imput, merged_nomiss$SEX,
+                 merged_nomiss$PC1, merged_nomiss$PC2, merged_nomiss$PC3, merged_nomiss$PC4, merged_nomiss$PC5)
+
+# Subdistribution hazard model for PD death (failcode = 1) 
+crr.1 <- crr(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, cov.mat, failcode = 1, cencode = 0)
+summary(crr.1)
+#The coefficients from the summary(crr) are in the order that we specified in the cov.mat
+
+# Subdistribution hazard model for nonPD death (failcode = 2)
+crr.2 <- crr(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, cov.mat, failcode = 2, cencode = 0)
+summary(crr.2)
+
+
+
+
+
+#---Cumulative incidence curves for TBXAS1 rs144889025---####
+
+#Summary of SNP allele carriers
+merged_nomiss %>% 
   group_by(rs144889025) %>% 
   summarise(count = n())
 
-plot_KM_stratified(merged_deathcause, "rs144889025", "yes")
-plot_KM_stratified(merged_deathcause, "rs144889025", "interrupted")
+#Code SNP in dominant model
+merged_nomiss <- merged_nomiss %>% 
+  mutate(rs144889025_dominant = ifelse(rs144889025 == 0, 0,
+                                       ifelse(rs144889025 == 1 | rs144889025 == 2, 1, NA)))
 
-plot_KM_faceted(merged_deathcause, "rs144889025")
+merged_nomiss %>% 
+  group_by(rs144889025_dominant) %>% 
+  summarise(count = n())
 
-#---Plot Kaplan-Meier curves for SYT10 rs10437796 SNP---####
+#Check if any missing SNP data
+merged_nomiss %>% 
+  filter(is.na(rs144889025_dominant)) %>% 
+  summarise(count = n())
 
-merged_deathcause %>%
+
+#Make SNP into a factor
+rs144889025_dominant_fact <- factor(merged_nomiss$rs144889025_dominant, levels=c(0,1), labels= c("rs144889025 non-carriers", "rs144889025 carriers"))
+
+#Run analysis
+fit <- CumIncidence_MT(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, rs144889025_dominant_fact, cencode = 0, xlab="Years from onset")
+
+#---Subdistribution hazard models for TBXAS1 SNP rs144889025---####
+
+#Make covariate matrix
+cov.mat <- cbind(merged_nomiss$rs144889025_dominant, merged_nomiss$age_onset_imput, merged_nomiss$SEX,
+                 merged_nomiss$PC1, merged_nomiss$PC2, merged_nomiss$PC3, merged_nomiss$PC4, merged_nomiss$PC5)
+
+# Subdistribution hazard model for PD death (failcode = 1) 
+crr.1 <- crr(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, cov.mat, failcode = 1, cencode = 0)
+summary(crr.1)
+#The coefficients from the summary(crr) are in the order that we specified in the cov.mat
+
+# Subdistribution hazard model for nonPD death (failcode = 2)
+crr.2 <- crr(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, cov.mat, failcode = 2, cencode = 0)
+summary(crr.2)
+
+
+
+
+
+#---Cumulative incidence curves for SYT10 rs10437796---####
+
+#Summary of SNP allele carriers
+merged_nomiss %>% 
   group_by(rs10437796) %>% 
   summarise(count = n())
 
-plot_KM_stratified(merged_deathcause, "rs10437796", "yes")
-plot_KM_stratified(merged_deathcause, "rs10437796", "interrupted")
+#Code SNP in dominant model
+merged_nomiss <- merged_nomiss %>% 
+  mutate(rs10437796_dominant = ifelse(rs10437796 == 0, 0,
+                                      ifelse(rs10437796 == 1 | rs10437796 == 2, 1, NA)))
 
-plot_KM_faceted(merged_deathcause, "rs10437796")
+merged_nomiss %>% 
+  group_by(rs10437796_dominant) %>% 
+  summarise(count = n())
+
+#Check if any missing SNP data
+merged_nomiss %>% 
+  filter(is.na(rs144889025_dominant)) %>% 
+  summarise(count = n())
+
+
+#Make SNP into a factor
+rs10437796_dominant_fact <- factor(merged_nomiss$rs10437796_dominant, levels=c(0,1), labels= c("rs10437796 non-carriers", "rs10437796 carriers"))
+
+#Run analysis
+fit <- CumIncidence_MT(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, rs10437796_dominant_fact, cencode = 0, xlab="Years from onset")
+
+#---Subdistribution hazard models for SYT10 SNP rs10437796---####
+
+#Make covariate matrix
+cov.mat <- cbind(merged_nomiss$rs10437796_dominant, merged_nomiss$age_onset_imput, merged_nomiss$SEX,
+                 merged_nomiss$PC1, merged_nomiss$PC2, merged_nomiss$PC3, merged_nomiss$PC4, merged_nomiss$PC5)
+
+# Subdistribution hazard model for PD death (failcode = 1) 
+crr.1 <- crr(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, cov.mat, failcode = 1, cencode = 0)
+summary(crr.1)
+#The coefficients from the summary(crr) are in the order that we specified in the cov.mat
+
+# Subdistribution hazard model for nonPD death (failcode = 2)
+crr.2 <- crr(merged_nomiss$timeToEvent_death, merged_nomiss$PDdeath, cov.mat, failcode = 2, cencode = 0)
+summary(crr.2)
+
+
+
 
