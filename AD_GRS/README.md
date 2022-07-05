@@ -6,6 +6,6 @@ Initially, I downloaded the full summary statistics for the AD GWAS from [https:
 
 # Code contents
 
-1. [AD_PRS_script_new.R](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/d7a7bc1a64c5827b2e64f11f45df75f02e0238cb/AD_GRS/AD_PRS_script_new.R): This script formats the AD summary statistics, and analyses the AD GRS vs. mortality, Hoehn and Yahr stage 3+, and cognitive impairment in each cohort. I also conduct random-effects meta-analysis to combine results across cohorts.
+1. [AD_PRS_script_new.R](https://github.com/huw-morris-lab/PD-survival-GWAS/AD_GRS/AD_PRS_script_new.R): This script formats the AD summary statistics, and analyses the AD GRS vs. mortality, Hoehn and Yahr stage 3+, and cognitive impairment in each cohort. I also conduct random-effects meta-analysis to combine results across cohorts.
 
-2. [AD_PRS_script.sh](AD_GRS/AD_PRS_script.sh): This script creates the AD GRS in each cohort, both with and without the APOE region.
+2. [AD_PRS_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/AD_GRS/AD_PRS_script.sh): This script creates the AD GRS in each cohort, both with and without the APOE region.
