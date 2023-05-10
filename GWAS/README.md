@@ -1,6 +1,6 @@
 # Code for running GWAS
 
-This repository contains scripts used to perform genome-wide association studies (GWAS) of Parkinson's Disease (PD) progression to specified clinical milestones: mortality, Hoehn and Yahr stage 3 or greater, and cognitive impairment.
+This repository contains scripts used to perform genome-wide association studies (GWAS) of Parkinson's Disease (PD) progression to specified clinical milestones: mortality, and Hoehn and Yahr stage 3 or greater.
 
 # Code contents
 
@@ -21,10 +21,10 @@ qsub -pe make 2 -cwd GWASscript_1.r
 qsub -pe make 2 -cwd GWASscript_2.r
 ```
 
-2. [interpret_results_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main//GWAS/interpret_results_script.sh): This script will combine GWAS results from all the subsets of the genome, calculate genomic inflation/lambda, and format for METAL. 
+2. [interpret_results_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main//GWAS/interpret_results_script.sh): This script will combine GWAS results from all the subsets of the genome, calculate genomic inflation/lambda, and format for meta-analysis using METAL. 
 
 * For meta-analysis of mortality, I excluded PPMI so merged all other cohorts by chr:bp in hg19
-* For meta-analysis of cognitive impairment and HY3, this included PPMI (in hg38) so merged by rsID
+* For meta-analysis of HY3, this included PPMI (in hg38) so merged by rsID
 
 
 3. [metaanalysis_mortality_script.sh](https://github.com/huw-morris-lab/PD-survival-GWAS/blob/main/GWAS/metaanalysis_mortality_script.sh): Run meta-analysis in METAL. This is for the mortality GWAS, the other GWASs follow the same format just different cohorts are included.
